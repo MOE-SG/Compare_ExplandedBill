@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BOM Compare Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+
+<style>
+body { font-family: Arial; margin:20px; }
+
+table { border-collapse: collapse; width:100%; margin-top:10px; }
+th,td { border:1px solid #ccc; padding:5px; font-size:12px; }
+th { background:#eee; }
+
+.added { background:#d4ffd4; }
+.removed { background:#ffd4d4; }
+.revchange { background:#fff4cc; }
+.findchange { background:#d4e4ff; }
+.qtychange { background:#f0d4ff; }
+.mfgchange { background:#ffe0cc; }
+
+.clickable { cursor:pointer; font-weight:bold; margin-top:5px; }
+.hidden { display:none; }
+
+.indicator {
+  display: inline-block;
+  width: 12px;
+  cursor: pointer;
+}
+
+tr:hover {
+  background: #f5f5f5;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>BOM Compare Tool (Production)</h2>
+
+<button onclick="bom1.click()">Select Old BOM</button>
+<span id="file1"></span>
+<input type="file" id="bom1" hidden><br>
+
+<button onclick="bom2.click()">Select New BOM</button>
+<span id="file2"></span>
+<input type="file" id="bom2" hidden><br><br>
+
+<button onclick="runCompare()">Compare</button>
+
+<button id="btnHtml" onclick="saveReport()" disabled>
+  Save Html Report
+</button>
+
+<button id="btnExcel" onclick="saveExcel()" disabled>
+  Save Excel Report
+</button>
+
+
+<div id="output"></div>
+
+<script>
+
+// ---------- FILE DISPLAY ----------
+
+let d1_global = null;
+let d2_global = null;
+
+let sum_global, aligned_global;
+let m1_global, m2_global;
+
+bom1.onchange = () => file1.innerText = bom1.files[0].name;
+bom2.onchange = () => file2.innerText = bom2.files[0].name;
+
+// ---------- TYPE ----------
+function getType(t){
+  t = String(t||"");
+  if(t.includes("Part")) return "Part";
+  if(t.includes("Specification")) return "Specification";
+  if(t.includes("Procedure")) return "Procedure";
+  if(t.includes("Drawing")) return "Drawing";
+  return "Other";
+}
+
+// ---------- PARSER ----------
+function readExcel(file){
+  return new Promise(res => {
+
+    let reader = new FileReader();
+
+    reader.onload = e => {
+
+      let wb  = XLSX.read(e.target.result,{type:'binary'});
+      let ws  = wb.Sheets[wb.SheetNames[0]];
+      let raw = XLSX.utils.sheet_to_json(ws,{header:1});
+
+      // ---------- ROOT ----------
+      let rootId = "";
+      let rootRev = "";
+
+      let headerRow = raw[0] || [];
+      let valueRow  = raw[1] || [];
+
+      let nameIdx = headerRow.indexOf("Name");
+      let revIdx  = headerRow.indexOf("Rev");
+
+      if(nameIdx !== -1) rootId = valueRow[nameIdx] || "";
+      if(revIdx !== -1)  rootRev = valueRow[revIdx] || "";
+
+      // ---------- FIND STRUCTURED HEADER ----------
+      let headerIndex = raw.findIndex(r =>
+        r.includes("Level") &&
+        r.includes("Type") &&
+        r.includes("Name") &&
+        r.includes("Quantity")
+      );
+
+      if(headerIndex === -1){
+        alert("Invalid BOM format");
+        res({rows: [], rootId: "", rootRev: ""});
+        return;
+      }
+
+      let header = raw[headerIndex];
+
+      let col = {
+        type: header.indexOf("Type"),
+        name: header.indexOf("Name"),
+        rev: header.indexOf("Rev"),
+        desc: header.indexOf("Description"),
+        find: header.indexOf("Find Number"),
+        qty: header.indexOf("Quantity"),
+        mfg: header.indexOf("Mfg"),
+        mfgPart: header.indexOf("Mfg Part Number")
+      };
+
+      // ---------- BUILD ROWS (WITH MULTI-MFG SUPPORT) ----------
+      let rows = [];
+      let lastValid = null;
+
+      raw.slice(headerIndex + 1).forEach(r => {
+
+        // LEVEL DETECTION (column-based)
+        let level = 0;
+        for(let i = 0; i < col.type; i++){
+          if(r[i] !== undefined && r[i] !== ""){
+            level = i + 1;
+            break;
+          }
+        }
+        if(level === 0) level = 1;
+
+        let name = String(r[col.name] || "").trim();
+
+        let mfg = col.mfg !== -1 ? r[col.mfg] : "";
+        let mfgPart = col.mfgPart !== -1 ? r[col.mfgPart] : "";
+
+        let isMainRow = name !== "";
+
+        // MAIN ROW
+        if(isMainRow){
+
+          let obj = {
+            Level: level,
+            Type: getType(r[col.type]),
+            Name: name,
+            Rev: r[col.rev],
+            Description: r[col.desc],
+            "Find Number": r[col.find],
+            Quantity: parseFloat(r[col.qty]) || 0,
+
+            // arrays for multiple manufacturers
+            mfg: mfg ? [mfg] : [],
+            mfgPart: mfgPart ? [mfgPart] : []
+          };
+
+          rows.push(obj);
+          lastValid = obj;
+        }
+
+        // CONTINUATION ROW (extra MFG)
+        else if(lastValid && (mfg || mfgPart)){
+
+          if(mfg) lastValid.mfg.push(mfg);
+          if(mfgPart) lastValid.mfgPart.push(mfgPart);
+        }
+
+      });
+
+      // FINAL RETURN (ONLY PLACE IT HERE)
+      res({rows, rootId, rootRev});
+    };
+
+    reader.readAsBinaryString(file);
+  });
+}
+// ---------- TREE ----------
+function buildTree(rows, rootId){
+
+  let root = {id:rootId, level:0, children:[]};
+  let stack=[root];
+
+  rows.forEach(r=>{
+
+    let n={
+      id:r.Name,
+      desc:r.Description,
+      type:r.Type,
+      rev:r.Rev,
+      find:r["Find Number"],
+      level:r.Level,
+      qty:r.Quantity,    
+      mfg: r.mfg,
+      mfgPart: r.mfgPart,
+      children:[]
+    };
+
+    while(stack.length && stack[stack.length-1].level>=n.level){
+      stack.pop();
+    }
+
+    stack[stack.length-1].children.push(n);
+    stack.push(n);
+  });
+
+  return root;
+}
+
+
+// ---------- FLATTEN WITH PATH ----------
+function flattenPath(n, path=null, mult=1, map={}){
+
+  //  fix ROOT handling
+  let newPath;
+
+  if(path === null){
+    newPath = n.id;  // root
+  } else {
+    newPath = path + " > " + n.id;
+  }
+
+  let newMult = mult;
+
+  //  FIX QTY LOGIC (see Issue 3)
+  if(n.type === "Part"){
+    let effectiveQty = (n.qty === undefined || n.qty === "" || isNaN(n.qty))
+      ? 1
+      : n.qty;    // KEEP 0 as 0
+
+    newMult = mult * effectiveQty;
+  }
+  
+  map[newPath] = {
+    id: n.id,
+    desc: n.desc,
+    type: n.type,
+    rev: n.rev,
+    find: n.find,
+    qty: (n.type==="Part" ? newMult : ""),
+    mfg: Array.isArray(n.mfg) ? n.mfg.join("<br>") : (n.mfg || ""),
+    mfgPart: Array.isArray(n.mfgPart) ? n.mfgPart.join("<br>") : (n.mfgPart || ""),
+    level: n.level,
+    path: newPath
+  };
+
+
+  n.children.forEach(c => flattenPath(c, newPath, newMult, map));
+
+  return map;
+}
+
+// ---------- SUMMARY ----------
+function buildSummary(m1, m2){
+
+  let s = {
+    same: [],
+    add: [],
+    remove: [],
+    rev: [],
+    find: [],
+    qty: [],
+    mfg: []
+  };
+
+  let keys = new Set([
+    ...Object.keys(m1),
+    ...Object.keys(m2)
+  ]);
+
+  keys.forEach(k => {
+
+    let a = m1[k];
+    let b = m2[k];
+
+    if(!a && b){
+      s.add.push({...b});
+      return;
+    }
+
+    if(a && !b){
+      s.remove.push({...a});
+      return;
+    }
+
+    if(a && b){
+
+      // REV CHANGE
+      if(a.rev !== b.rev){
+        s.rev.push({
+          ...a,
+          oldRev: a.rev,
+          newRev: b.rev
+        });
+        return;
+      }
+
+      // FIND CHANGE
+      if(a.find !== b.find){
+        s.find.push({
+          ...a,
+          oldFind: a.find,
+          newFind: b.find
+        });
+        return;
+      }
+
+      // QTY CHANGE
+      if(a.qty !== b.qty){
+        s.qty.push({
+          ...a,
+          oldQty: a.qty,
+          newQty: b.qty
+        });
+        return;
+      }
+      
+      if(a.mfg !== b.mfg || a.mfgPart !== b.mfgPart){
+        s.mfg.push({
+          ...a,
+          oldMfg: a.mfg,
+          newMfg: b.mfg,
+          oldMfgPart: a.mfgPart,
+          newMfgPart: b.mfgPart
+        });
+        return;
+      }
+
+      // SAME
+      s.same.push({...a});
+    }
+
+  });
+
+  return s;
+}
+
+// ---------- ALIGN ----------
+function buildAligned(m1,m2){
+
+  let keys=new Set([...Object.keys(m1),...Object.keys(m2)]);
+
+  return Array.from(keys).map(k=>{
+
+    let a=m1[k],b=m2[k];
+
+    let change="Unchanged";
+    if(!a) change="Added";
+    else if(!b) change="Removed";
+    else if(a.rev!==b.rev) change="Revision Changed";
+    else if(a.find!==b.find) change="Find Changed";
+    else if(a.qty!==b.qty) change="Qty Changed";
+
+    return {
+      path:k,
+      id:a?.id||b?.id,
+      desc:a?.desc||b?.desc,
+      type:a?.type||b?.type,
+      oldRev:a?.rev||"",
+      newRev:b?.rev||"",
+      oldFind:a?.find||"",
+      newFind:b?.find||"",
+      oldQty:a?.qty??"",
+      newQty:b?.qty??"",
+      change
+    };
+  });
+}
+
+function formatMfgSingle(val){
+
+  if(!val) return "";
+
+  // support both array and string
+  let arr = Array.isArray(val)
+    ? val
+    : String(val).split(/;|<br>/);
+
+  return arr.filter(x => x).join("<br>");
+}
+
+function formatMfgDiff(oldVal, newVal){
+
+  let oldArr = Array.isArray(oldVal)
+    ? oldVal
+    : String(oldVal || "").split(/;|<br>/);
+
+  let newArr = Array.isArray(newVal)
+    ? newVal
+    : String(newVal || "").split(/;|<br>/);
+
+  let maxLen = Math.max(oldArr.length, newArr.length);
+
+  let lines = [];
+
+  for(let i = 0; i < maxLen; i++){
+
+    let oldItem = oldArr[i] || "";
+    let newItem = newArr[i] || "";
+
+    lines.push(`${oldItem} → ${newItem}`);
+  }
+
+  return lines.join("<br>");
+}
+
+// ---------- TABLE ----------
+function renderTable(data, cls, diff=false){
+
+  return `
+  <table>
+    <tr>
+      <th>Level</th>
+      <th>Type</th>
+      <th>Part</th>
+      <th>Description</th>
+      <th>${diff ? "Rev (Old → New)" : "Rev"}</th>
+      <th>${diff ? "Find (Old → New)" : "Find"}</th>
+      <th>${diff ? "Qty (Old → New)" : "Qty"}</th>
+      <th>Mfg</th>
+      <th>Mfg Part No</th>
+    </tr>
+
+    ${
+      data.map(d => `
+        <tr class="${cls}">
+          <td>${d.level ?? ""}</td>
+          <td>${d.type || ""}</td>
+          <td>${d.id || ""}</td>
+          <td>${d.desc || ""}</td>
+
+          <td>
+            ${
+              diff
+              ? (d.oldRev !== undefined
+                  ? `${d.oldRev} → ${d.newRev}`
+                  : (d.rev || ""))
+              : (d.rev || "")
+            }
+          </td>
+
+          <td>
+            ${
+              diff
+              ? (d.oldFind !== undefined
+                  ? `${d.oldFind} → ${d.newFind}`
+                  : (d.find || ""))
+              : (d.find || "")
+            }
+          </td>
+
+          <td>
+            ${
+              diff
+              ? (d.oldQty !== undefined
+                  ? `${d.oldQty} → ${d.newQty}`
+                  : (d.qty ?? ""))
+              : (d.qty ?? "")
+            }
+          </td>
+
+          <td>
+          ${
+            diff && d.oldMfg !== undefined
+            ? formatMfgDiff(d.oldMfg, d.newMfg)
+            : formatMfgSingle(d.mfg)
+          }
+          </td>
+
+          <td>
+          ${
+            diff && d.oldMfgPart !== undefined
+            ? formatMfgDiff(d.oldMfgPart, d.newMfgPart)
+            : formatMfgSingle(d.mfgPart)
+          }
+          </td>
+        </tr>
+      `).join("")
+    }
+
+  </table>`;
+}
+
+
+// ---------- BOM TABLE ----------
+function renderBOM(map, title){
+
+  let rows = Object.values(map);
+
+  function hasChildren(index){
+    let current = rows[index];
+    let next = rows[index + 1];
+    if(!next) return false;
+
+    let currLevel = current.path.split(" > ").length;
+    let nextLevel = next.path.split(" > ").length;
+
+    return nextLevel > currLevel;
+  }
+
+  return `
+  <h3>${title}</h3>
+
+  <table>
+    <tr>
+      <th>Level</th>
+      <th>Type</th>
+      <th>Part</th>
+      <th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th>
+      <th>Mfg Part No</th>
+      <th>Comment</th>
+    </tr>
+
+    ${
+      rows.map((r, i) => {
+
+        let level = r.path.split(" > ").length - 1;
+        let indent = level * 15;
+
+        let expandable = hasChildren(i);
+        let indicator = expandable ? `<span class="indicator">▶</span>` : `<span class="indicator"></span>`;
+
+        let cls = "";
+        if(r.change === "Added") cls = "added";
+        else if(r.change === "Removed") cls = "removed";
+        else if(r.change === "Revision Changed") cls = "revchange";
+        else if(r.change === "Find Changed") cls = "findchange";
+        else if(r.change === "Qty Changed") cls = "qtychange";
+
+        let hidden = level > 1 ? "hidden" : "";
+
+        let clickAttr = expandable ? `onclick="toggleRow(this)"` : "";
+
+        return `
+        <tr class="${cls} ${hidden}" data-level="${level}" ${clickAttr}>
+          <td>${level}</td>
+          <td>${r.type}</td>
+
+          <td style="padding-left:${indent}px">
+            ${indicator} ${r.id}
+          </td>
+
+          <td>${r.desc || ""}</td>
+          <td>${r.rev || ""}</td>
+          <td>${r.find || ""}</td>
+          <td>${r.qty}</td>
+          <td>${r.mfg || ""}</td>
+          <td>${r.mfgPart || ""}</td>
+          <td>${r.change || ""}</td>
+        </tr>`;
+      }).join("")
+    }
+
+  </table>`;
+}
+
+// ---------- SIDE BY SIDE ----------
+function renderAligned(data){
+
+  return `
+  
+  <div class="clickable" onclick="toggle('diff')">
+    Path-Based Diff (click to expand/collapse)
+  </div>
+  <div id="diff" class="hidden">
+
+  <table>
+  <tr>
+    <th>Path</th><th>Part</th><th>Description</th>
+    <th>Old Rev</th><th>New Rev</th>
+    <th>Old Find</th><th>New Find</th>
+    <th>Old Qty</th><th>New Qty</th>
+    <th>Change</th>
+  </tr>
+  ${
+    data.map(r=>{
+      let cls = r.change==="Added"?"added":
+                r.change==="Removed"?"removed":
+                r.change==="Revision Changed"?"revchange":
+                r.change==="Find Changed"?"findchange":
+                r.change=== "Qty Changed"?"qtychange":"";
+
+      return `<tr class="${cls}">
+        <td>${r.path}</td>
+        <td>${r.id}</td>
+        <td>${r.desc||""}</td>
+        <td>${r.oldRev}</td>
+        <td>${r.newRev}</td>
+        <td>${r.oldFind}</td>
+        <td>${r.newFind}</td>
+        <td>${r.oldQty}</td>
+        <td>${r.newQty}</td>
+        <td>${r.change}</td>
+      </tr>`;
+    }).join("")
+  }
+  </table>
+  </div>`;
+}
+
+// ---------- TOGGLE ----------
+function toggle(id){
+  document.getElementById(id).classList.toggle("hidden");
+}
+
+function toggleGroup(id){
+
+  let rows = document.querySelectorAll("tr");
+
+  rows.forEach(r => {
+    if(r.dataset.parent === id){
+      r.classList.toggle("hidden");
+    }
+  });
+}
+
+function toggleRow(row){
+
+  let currentLevel = Number(row.dataset.level);
+  let next = row.nextElementSibling;
+
+  let indicator = row.querySelector(".indicator");
+
+  let isCollapsed = indicator && indicator.textContent === "▶";
+
+  // update arrow
+  if(indicator){
+    indicator.textContent = isCollapsed ? "▼" : "▶";
+  }
+
+  while(next){
+
+    let nextLevel = Number(next.dataset.level);
+
+    // stop when exit subtree
+    if(nextLevel <= currentLevel) break;
+
+    // COLLAPSE: hide ALL descendants
+    if(!isCollapsed){
+      next.classList.add("hidden");
+
+      // reset all child arrows too
+      let childIndicator = next.querySelector(".indicator");
+      if(childIndicator){
+        childIndicator.textContent = "▶";
+      }
+    }
+
+    // EXPAND: show only immediate children
+    else{
+      if(nextLevel === currentLevel + 1){
+        next.classList.remove("hidden");
+      }
+    }
+
+    next = next.nextElementSibling;
+  }
+}
+
+function hasChildren(rows, index){
+  let current = rows[index];
+  let next = rows[index + 1];
+
+  if(!next) return false;
+
+  let currLevel = current.path.split(" > ").length;
+  let nextLevel = next.path.split(" > ").length;
+
+  return nextLevel > currLevel;
+}
+
+// ---------- MAIN ----------
+async function runCompare(){
+ 
+  if(!bom1.files[0] || !bom2.files[0]){
+    alert("Please select both BOM files");
+    return;
+  }
+
+  document.getElementById("btnHtml").disabled = true;
+  document.getElementById("btnExcel").disabled = true;
+
+  let d1=await readExcel(bom1.files[0]);
+  let d2=await readExcel(bom2.files[0]);
+  d1_global = d1;
+  d2_global = d2;
+
+  let t1=buildTree(d1.rows,d1.rootId);
+  let t2=buildTree(d2.rows,d2.rootId);
+
+  let m1=flattenPath(t1);
+  let m2=flattenPath(t2);
+  m1_global = m1;
+  m2_global = m2;
+
+  let sum=buildSummary(m1,m2);
+  let aligned=buildAligned(m1,m2);
+  sum_global = sum;
+  aligned_global = aligned;
+
+  aligned.forEach(r => {
+    if(m1[r.path]) m1[r.path].change = r.change;
+    if(m2[r.path]) m2[r.path].change = r.change;
+  });
+
+  
+  output.innerHTML=`
+
+
+  <h3>
+  Summary: ${d1.rootId} (Rev ${d1.rootRev}) vs ${d2.rootId} (Rev ${d2.rootRev})
+  </h3>
+
+  <div class="clickable" onclick="toggle('u')">Unchanged (${sum.same.length})</div>
+  <div id="u" class="hidden">${renderTable(sum.same,"")}</div>
+
+  <div class="clickable added" onclick="toggle('a')">Added (${sum.add.length})</div>
+  <div id="a" class="hidden">${renderTable(sum.add,"added")}</div>
+
+  <div class="clickable removed" onclick="toggle('r')">Removed (${sum.remove.length})</div>
+  <div id="r" class="hidden">${renderTable(sum.remove,"removed")}</div>
+
+  <div class="clickable revchange" onclick="toggle('rev')">Revision Changes (${sum.rev.length})</div>
+  <div id="rev" class="hidden">${renderTable(sum.rev,"revchange",true)}</div>
+
+  <div class="clickable findchange" onclick="toggle('f')">Find Changes (${sum.find.length})</div>
+  <div id="f" class="hidden">${renderTable(sum.find,"findchange",true)}</div>
+
+  <div class="clickable" onclick="toggle('q')">Qty Changes (${sum.qty.length})</div>
+  <div id="q" class="hidden">${renderTable(sum.qty,"",true)}</div>
+
+  <div class="clickable" onclick="toggle('m')">Manufacturer Changes (${sum.mfg.length})</div>
+  <div id="m" class="hidden">${renderTable(sum.mfg,"findchange",true)}</div>
+
+  ${renderAligned(aligned)}
+
+  ${renderBOM(m1, `Old BOM: ${d1.rootId} (Rev ${d1.rootRev})`)}
+  ${renderBOM(m2, `New BOM: ${d2.rootId} (Rev ${d2.rootRev})`)}
+
+
+  `;
+
+  // enable buttons after successful compare
+  document.getElementById("btnHtml").disabled = false;
+  document.getElementById("btnExcel").disabled = false;
+}
+
+// ---------- EXPORT ----------
+function saveReport(){
+
+  if(!d1_global || !d2_global){
+    alert("Please run comparison first");
+    return;
+  }
+
+  // CSS
+  let style = `
+  <style>
+    body { font-family: Arial; margin:20px; }
+
+    table { border-collapse: collapse; width:100%; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:5px; font-size:12px; }
+    th { background:#eee; }
+
+    .added { background:#d4ffd4; }
+    .removed { background:#ffd4d4; }
+    .revchange { background:#fff4cc; }
+    .findchange { background:#d4e4ff; }
+    .qtychange { background:#f0d4ff; }
+
+    .clickable { cursor:pointer; font-weight:bold; margin-top:5px; }
+    .hidden { display:none; }
+
+    .indicator {
+      display:inline-block;
+      width:14px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    tr:hover { background:#f5f5f5; }
+  </style>`;
+
+  // SCRIPT (ALL TOGGLES + TREE BEHAVIOR)
+  let script = `
+<script>
+
+function toggle(id){
+  var el = document.getElementById(id);
+  if(el){
+    el.classList.toggle("hidden");
+  }
+}
+
+// TREE TOGGLE (fixed version)
+function toggleRow(row){
+
+  let currentLevel = Number(row.dataset.level);
+  let next = row.nextElementSibling;
+
+  let indicator = row.querySelector(".indicator");
+
+  let isCollapsed = indicator && indicator.textContent === "▶";
+
+  // update arrow
+  if(indicator){
+    indicator.textContent = isCollapsed ? "▼" : "▶";
+  }
+
+  while(next){
+
+    let nextLevel = Number(next.dataset.level);
+
+    if(nextLevel <= currentLevel) break;
+
+    if(!isCollapsed){
+      // collapse: hide ALL children
+      next.classList.add("hidden");
+
+      let childIndicator = next.querySelector(".indicator");
+      if(childIndicator){
+        childIndicator.textContent = "▶";
+      }
+    } else {
+      // expand: show ONLY direct children
+      if(nextLevel === currentLevel + 1){
+        next.classList.remove("hidden");
+      }
+    }
+
+    next = next.nextElementSibling;
+  }
+}
+
+// RE-INITIALIZE TREE ON LOAD
+window.onload = function(){
+
+  let rows = document.querySelectorAll("tr[data-level]");
+
+  rows.forEach(r => {
+
+    let level = Number(r.dataset.level);
+
+    let indicator = r.querySelector(".indicator");
+
+    // collapse deeper levels
+    if(level > 1){
+      r.classList.add("hidden");
+    }
+
+    // reset all arrows
+    if(indicator){
+      indicator.textContent = "▶";
+    }
+  });
+
+};
+
+<\/script>
+`;
+
+  // HTML OUTPUT
+  let html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BOM Report</title>
+${style}
+</head>
+<body>
+${document.getElementById("output").innerHTML}
+${script}
+</body>
+</html>`;
+
+  // FILE NAME
+  let fileName = "BOM_Report.html";
+
+  if(d1_global && d2_global){
+    let oldName = `${d1_global.rootId}${d1_global.rootRev}`;
+    let newName = `${d2_global.rootId}${d2_global.rootRev}`;
+    fileName = `${oldName}_vs_${newName}.html`;
+  }
+
+  // DOWNLOAD
+  let blob = new Blob([html], {type:"text/html"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  a.click();
+
+  URL.revokeObjectURL(a.href);
+}
+
+async function saveExcel(){
+
+  if(!d1_global || !d2_global){
+    alert("Please run comparison first");
+    return;
+  }
+
+  const wb = new ExcelJS.Workbook();
+
+  function getRowColor(d){
+
+    if(d.oldRev !== undefined) return "FFF2CC";       // yellow
+    if(d.oldFind !== undefined) return "D9E1F2";      // blue
+    if(d.oldQty !== undefined) return "E4DFEC";       // purple
+    if(d.oldMfg !== undefined) return "FCE4D6";       // orange
+
+    if(d.change === "Added") return "C6EFCE";         // green
+    if(d.change === "Removed") return "FFC7CE";       // red
+
+    return null;
+  }
+  // =========================
+  // FORMAT ROW (UNCHANGED)
+  // =========================
+  function formatRow(d){
+
+    function toArray(val){
+      if(!val) return [];
+      if(Array.isArray(val)) return val;
+      return String(val).split(/;|\n|<br>/).map(x => x.trim()).filter(x => x);
+    }
+
+    function multiLine(val){
+      return toArray(val).join("\n");
+    }
+
+    function diffLine(oldVal, newVal){
+      let oldArr = toArray(oldVal);
+      let newArr = toArray(newVal);
+
+      let maxLen = Math.max(oldArr.length, newArr.length);
+      let lines = [];
+
+      for(let i = 0; i < maxLen; i++){
+        lines.push(`${oldArr[i] || ""} → ${newArr[i] || ""}`);
+      }
+
+      return lines.join("\n");
+    }
+
+    let change =
+      d.oldRev !== undefined ? "[REV]" :
+      d.oldFind !== undefined ? "[FIND]" :
+      d.oldQty !== undefined ? "[QTY]" :
+      d.oldMfg !== undefined ? "[MFG]" :
+      (d.change === "Added" ? "[ADD]" :
+       d.change === "Removed" ? "[REM]" : "[SAME]");
+
+    return {
+      Level: d.level ?? "",
+      Type: d.type ?? "",
+      Part: d.id ?? "",
+      Description: d.desc ?? "",
+
+      Rev: d.oldRev !== undefined
+        ? `${d.oldRev} → ${d.newRev}`
+        : (d.rev ?? ""),
+
+      Find: d.oldFind !== undefined
+        ? `${d.oldFind} → ${d.newFind}`
+        : (d.find ?? ""),
+
+      Qty: d.oldQty !== undefined
+        ? `${d.oldQty} → ${d.newQty}`
+        : (d.qty ?? ""),
+
+      Mfg: typeof d.oldMfg !== "undefined"
+        ? diffLine(d.oldMfg, d.newMfg)
+        : multiLine(d.mfg),
+
+      "Mfg Part No": typeof d.oldMfgPart !== "undefined"
+        ? diffLine(d.oldMfgPart, d.newMfgPart)
+        : multiLine(d.mfgPart),
+
+      Change: d.change ?? ""
+    };
+  }
+
+  function sanitizeRow(row){
+
+  let clean = {};
+
+  Object.keys(row).forEach(k => {
+
+    let v = row[k];
+
+    if(v === undefined || v === null){
+      clean[k] = "";
+    }
+    else if(Array.isArray(v)){
+      clean[k] = v.join("\n");   // safe conversion
+    }
+    else if(typeof v === "number" && isNaN(v)){
+      clean[k] = "";
+    }
+    else{
+      clean[k] = String(v);
+    }
+
+  });
+
+  return clean;
+}
+
+
+function normalizeData(data){
+
+  if(data.length === 0) return data;
+
+  let keys = Object.keys(data[0]);
+
+  return data.map(r => {
+    let obj = {};
+    keys.forEach(k => obj[k] = r[k] ?? "");
+    return obj;
+  });
+}
+
+function getSafeLevel(row){
+  let lvl = Number(row.Level);
+
+  if(Number.isInteger(lvl) && lvl >= 1 && lvl <= 10){
+    return lvl - 1; // Excel starts from 0
+  }
+
+  return null;
+}
+
+  // =========================
+  // ADD SHEET WITH GROUPING
+  // =========================
+  /*function addSheet(name, data){
+    data = normalizeData(data);
+    const ws = wb.addWorksheet(name);
+
+    if(data.length === 0) return;
+
+    // define columns
+    ws.columns = Object.keys(data[0]).map(k => ({
+      header: k,
+      key: k,
+      width: 25
+    }));
+
+
+    data.forEach(row => {     
+      // CLEAN row values
+      Object.keys(row).forEach(k => {
+        if(row[k] === undefined || row[k] === null){
+          row[k] = "";
+        } else {
+          row[k] = String(row[k]); // force string
+        }
+      });
+      let safeRow = sanitizeRow(row);
+      let r = ws.addRow(safeRow);
+      //let color = getRowColor(row);
+      r.eachCell(cell => {
+        // wrap text (existing)
+        cell.alignment = {
+          wrapText: true,
+          vertical: "top"
+        };
+        //APPLY COLOR
+        /*if(color && typeof color === "string" && color.length === 6){
+
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FF" + color }  // MUST be 8-char ARGB
+          };
+        
+        }
+
+
+      //});
+      // GROUPING     
+      let lvl = getSafeLevel(row);
+      if(lvl !== null){
+        r.outlineLevel = lvl;
+      }/*let lvl = Number(row.Level);
+
+      if (!isNaN(lvl) && lvl > 0) {
+        r.outlineLevel = lvl - 1;
+      }
+    });
+
+    // enable collapse UI
+    ws.properties.outlineLevelRow = 10;
+
+    // freeze header
+    ws.views = [{ state: "frozen", ySplit: 1 }];
+  }*/
+
+function applySafeGrouping(ws, data){
+
+  let prevLevel = 1;
+
+  data.forEach((row, idx) => {
+
+    let excelRow = ws.getRow(idx + 2); // header is row 1
+
+    let lvl = parseInt(row.Level, 10);
+
+    if(isNaN(lvl) || lvl < 1) lvl = 1;
+
+    // prevent jumps
+    if(lvl > prevLevel + 1) lvl = prevLevel + 1;
+
+    // Excel max outline level is 7 → outlineLevel 0..7
+    let outline = lvl - 1;
+    if(outline > 7) outline = 7;
+    if(outline < 0) outline = 0;
+
+    excelRow.outlineLevel = outline;
+
+    prevLevel = lvl;
+  });
+
+  // 7 is the max Excel allows, NOT 10
+  ws.properties.outlineLevelRow = 7;
+}
+
+function getFillColor(row){
+  // row here is the FORMATTED row (has .Change and arrow strings)
+  let c = String(row.Change || "");
+
+  if(c === "Added")            return "C6EFCE"; // green
+  if(c === "Removed")          return "FFC7CE"; // red
+  if(c === "Revision Changed") return "FFF2CC"; // yellow
+  if(c === "Find Changed")     return "D9E1F2"; // blue
+  if(c === "Qty Changed")      return "E4DFEC"; // purple
+
+  // Manufacturer changes don't carry a Change label — detect the arrow
+  if(String(row.Mfg).includes("→") || String(row["Mfg Part No"]).includes("→"))
+    return "FCE4D6"; // orange
+
+  return null;
+}
+
+function addSheet(name, data, enableGrouping = false){
+
+  data = normalizeData(data);
+
+  const ws = wb.addWorksheet(name);
+
+  if(data.length === 0) return;
+
+  ws.properties.outlineProperties = { summaryBelow: false };
+
+  ws.columns = Object.keys(data[0]).map(k => ({
+    header: k, key: k, width: 25
+  }));
+
+  data.forEach(row => {
+
+    let safeRow = sanitizeRow(row);
+    let r = ws.addRow(safeRow);
+
+    let color = getFillColor(row);
+
+    r.eachCell(cell => {
+
+      cell.alignment = { wrapText: true, vertical: "top" };
+
+      if(color){
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF" + color }
+        };
+      }
+    });
+  });
+
+  ws.views = [{ state: "frozen", ySplit: 1 }];
+
+  if(enableGrouping){
+    applySafeGrouping(ws, data);
+  }
+}
+
+  // =========================
+  // SUMMARY SHEET (RESTORED)
+  // =========================
+  const summary = wb.addWorksheet("Summary");
+
+  summary.columns = [
+    { header: "Category", key: "cat", width: 30 },
+    { header: "Count", key: "cnt", width: 10 }
+  ];
+
+  [
+    ["Unchanged", sum_global.same.length],
+    ["Added", sum_global.add.length],
+    ["Removed", sum_global.remove.length],
+    ["Revision Changed", sum_global.rev.length],
+    ["Find Changed", sum_global.find.length],
+    ["Qty Changed", sum_global.qty.length],
+    ["Manufacturer Changed", sum_global.mfg?.length || 0]
+  ].forEach(r => summary.addRow({ cat: r[0], cnt: r[1] }));
+
+
+  // =========================
+  // OTHER SHEETS
+  // =========================
+  addSheet("Revision",     normalizeData(sum_global.rev.map(formatRow)),  false, "FFF2CC");
+  addSheet("Find",         normalizeData(sum_global.find.map(formatRow)), false, "D9E1F2");
+  addSheet("Quantity",     normalizeData(sum_global.qty.map(formatRow)),  false, "E4DFEC");
+  addSheet("Manufacturer", normalizeData((sum_global.mfg||[]).map(formatRow)), false, "FCE4D6");
+  addSheet("Added",        normalizeData(sum_global.add.map(formatRow)),  false, "C6EFCE");
+  addSheet("Removed",      normalizeData(sum_global.remove.map(formatRow)), false, "FFC7CE");
+
+  // Old/New BOM keep per-row coloring from the Change field
+  addSheet("Old BOM", Object.values(m1_global).map(formatRow), true);
+  addSheet("New BOM", Object.values(m2_global).map(formatRow), true);
+
+
+  // =========================
+  // SAVE FILE
+  // =========================
+  const buffer = await wb.xlsx.writeBuffer();
+
+  const blob = new Blob([buffer]);
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+  a.download = `${d1_global.rootId}${d1_global.rootRev}_vs_${d2_global.rootId}${d2_global.rootRev}.xlsx`;
+  a.click();
+}
+
+</script>
+
+</body>
+</html>
