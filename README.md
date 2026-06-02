@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>BOM Report</title>
+  <style>
+    body { font-family: Arial; margin:20px; }
+    table { border-collapse: collapse; width:100%; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:5px; font-size:12px; }
+    th { background:#eee; position:sticky; top:0; }
+    .added{background:#d4ffd4;} .removed{background:#ffd4d4;}
+    .revchange{background:#fff4cc;} .findchange{background:#d4e4ff;}
+    .qtychange{background:#f0d4ff;} .mfgchange{background:#ffe0cc;} .unchanged{background:#f2f2f2;}
+    .clickable{cursor:pointer;font-weight:bold;margin-top:8px;padding:6px 8px;border-radius:4px;display:flex;align-items:center;gap:8px;}
+    .swatch{display:inline-block;width:14px;height:14px;border:1px solid #999;border-radius:3px;}
+    .hidden{display:none;}
+    .indicator{display:inline-block;width:14px;font-weight:bold;cursor:pointer;}
+    tr:hover{background:#f5f5f5;}
+    .report-header{border:1px solid #ccc;border-radius:8px;padding:16px 18px;margin:14px 0;background:#fbfbfb;}
+    .rh-title{margin:0 0 10px 0;font-size:20px;}
+    .rh-meta{width:auto;margin:0 0 12px 0;border:none;}
+    .rh-meta td{border:none;padding:2px 14px 2px 0;font-size:13px;}
+    .rh-k{color:#666;white-space:nowrap;} .rh-v{font-weight:bold;color:#222;}
+    .scorecard{display:flex;flex-wrap:wrap;gap:8px;}
+    .score{display:inline-flex;align-items:center;gap:6px;border:1px solid #aaa;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;user-select:none;}
+    .score:hover{border-color:#444;}
+    .score-n{font-weight:bold;font-size:14px;} .score-l{color:#333;}
+    .sect-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;padding:8px 10px;margin-top:10px;border:1px solid #ddd;border-radius:6px;background:#fafafa;font-weight:bold;}
+    .sect-head:hover{background:#f0f0f0;}
+    .sh-tri{display:inline-block;width:12px;font-size:11px;color:#555;}
+    .sh-title{flex:1;} .sh-right{font-weight:normal;color:#555;font-size:12px;}
+    .sbs-controls{padding:8px 4px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;}
+    @media print {
+      .hidden{display:table-row!important;}
+      .clickable{cursor:default;}
+      .report-header{break-inside:avoid;}
+      tr{page-break-inside:avoid;}
+      th{position:static;}
+    }
+  </style></head>
+<body>
+    
+  <div class="report-header">
+    <h2 class="rh-title">Expanded Bills Comparison Report</h2>
+    <table class="rh-meta">
+      <tbody><tr><td class="rh-k">Old BOM</td><td class="rh-v">CHASSIS-200 &nbsp;(Rev D)</td></tr>
+      <tr><td class="rh-k">New BOM</td><td class="rh-v">CHASSIS-200 &nbsp;(Rev E)</td></tr>
+      <tr><td class="rh-k">Generated</td><td class="rh-v">6/2/2026, 8:45:01 AM</td></tr>
+    </tbody></table>
+    <div class="scorecard">
+      <span class="score" style="background:#C6EFCE" onclick="openSection(&#39;sect-add&#39;)" title="Jump to Added">
+      <span class="score-n">4</span><span class="score-l">Added</span>
+    </span>
+      <span class="score" style="background:#FFC7CE" onclick="openSection(&#39;sect-remove&#39;)" title="Jump to Removed">
+      <span class="score-n">3</span><span class="score-l">Removed</span>
+    </span>
+      <span class="score" style="background:#FFF2CC" onclick="openSection(&#39;sect-rev&#39;)" title="Jump to Revision Changed">
+      <span class="score-n">5</span><span class="score-l">Revision Changed</span>
+    </span>
+      <span class="score" style="background:#D9E1F2" onclick="openSection(&#39;sect-find&#39;)" title="Jump to Find Changed">
+      <span class="score-n">1</span><span class="score-l">Find Changed</span>
+    </span>
+      <span class="score" style="background:#E4DFEC" onclick="openSection(&#39;sect-qty&#39;)" title="Jump to Qty Changed">
+      <span class="score-n">2</span><span class="score-l">Qty Changed</span>
+    </span>
+      <span class="score" style="background:#FCE4D6" onclick="openSection(&#39;sect-mfg&#39;)" title="Jump to Manufacturer Changed">
+      <span class="score-n">1</span><span class="score-l">Manufacturer Changed</span>
+    </span>
+      <span class="score" style="background:#F2F2F2" onclick="openSection(&#39;sect-unchanged&#39;)" title="Jump to Unchanged">
+      <span class="score-n">9</span><span class="score-l">Unchanged</span>
+    </span>
+    </div>
+  </div>
+
+    <div class="sect-head" id="head-sect-add" onclick="toggleSection(&#39;sect-add&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#C6EFCE"></span>
+    <span class="sh-title">Details of Parts Added (4)</span>
+    <span class="sh-right">3 parts, 1 specification</span>
+  </div>
+      <div id="sect-add" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="">
+        <td>2</td>
+        <td>Part</td>
+        <td>FUSE-2A</td>
+        <td>Slow-blow fuse, 2A</td>
+        <td>A</td>
+        <td>40</td>
+        <td>1</td>
+        <td>Littelfuse</td>
+        <td>LF-2A-SB</td>
+      </tr>
+      <tr class="">
+        <td>3</td>
+        <td>Part</td>
+        <td>CONN-USB-C</td>
+        <td>USB-C connector</td>
+        <td>A</td>
+        <td>10</td>
+        <td>2</td>
+        <td>Amphenol</td>
+        <td>AM-USBC-R</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Part</td>
+        <td>BRACKET-EARTH</td>
+        <td>Earth bonding bracket</td>
+        <td>A</td>
+        <td>55</td>
+        <td>2</td>
+        <td>MetalWorks</td>
+        <td>MW-BR-EARTH</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Specification</td>
+        <td>SPEC-SAFETY</td>
+        <td>Safety standards (IEC 61010)</td>
+        <td>A</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-remove" onclick="toggleSection(&#39;sect-remove&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#FFC7CE"></span>
+    <span class="sh-title">Details of Parts Removed (3)</span>
+    <span class="sh-right">2 parts, 1 specification</span>
+  </div>
+      <div id="sect-remove" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="">
+        <td>2</td>
+        <td>Part</td>
+        <td>DIODE-1N4007</td>
+        <td>Rectifier diode</td>
+        <td>A</td>
+        <td>30</td>
+        <td>4</td>
+        <td>DiodesInc</td>
+        <td>DI-1N4007</td>
+      </tr>
+      <tr class="">
+        <td>3</td>
+        <td>Part</td>
+        <td>CONN-DB9</td>
+        <td>DB-9 connector</td>
+        <td>A</td>
+        <td>10</td>
+        <td>2</td>
+        <td>Amphenol</td>
+        <td>AM-DB9-M</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Specification</td>
+        <td>SPEC-ENV</td>
+        <td>Environmental compliance</td>
+        <td>A</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-rev" onclick="toggleSection(&#39;sect-rev&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#FFF2CC"></span>
+    <span class="sh-title">Details of Revision Changes (5)</span>
+    <span class="sh-right">3 parts, 1 specification, 1 drawing</span>
+  </div>
+      <div id="sect-rev" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev (Old → New)</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="revchange">
+        <td>1</td>
+        <td>Part</td>
+        <td><a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+        <td>Welded steel frame</td>
+        <td>C → D</td>
+        <td>10</td>
+        <td>1</td>
+        <td>MetalWorks</td>
+        <td>MW-FR-200</td>
+      </tr>
+      <tr class="revchange">
+        <td>2</td>
+        <td>Part</td>
+        <td>CAP-470</td>
+        <td>Capacitor 470uF</td>
+        <td>A → B</td>
+        <td>20</td>
+        <td>4</td>
+        <td>CapWorks</td>
+        <td>CW-470<br>Murata</td>
+      </tr>
+      <tr class="revchange">
+        <td>2</td>
+        <td>Part</td>
+        <td>SUB-IO</td>
+        <td>I/O daughterboard</td>
+        <td>B → C</td>
+        <td>10</td>
+        <td>1</td>
+        <td>PCBCo</td>
+        <td>PCB-IO-V2</td>
+      </tr>
+      <tr class="revchange">
+        <td>1</td>
+        <td>Specification</td>
+        <td><a href="https://www.academyofemc.com/emc-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">SPEC-EMC</a></td>
+        <td>EMC compliance specification</td>
+        <td>B → C</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr class="revchange">
+        <td>1</td>
+        <td>Drawing</td>
+        <td>DWG-ASM</td>
+        <td>Assembly drawing</td>
+        <td>D → E</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-find" onclick="toggleSection(&#39;sect-find&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#D9E1F2"></span>
+    <span class="sh-title">Details of Find Number Changes (1)</span>
+    <span class="sh-right">1 part</span>
+  </div>
+      <div id="sect-find" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find (Old → New)</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="findchange">
+        <td>2</td>
+        <td>Part</td>
+        <td>SUB-IO</td>
+        <td>I/O daughterboard</td>
+        <td>B</td>
+        <td>10 → 5</td>
+        <td>1</td>
+        <td>PCBCo</td>
+        <td>PCB-IO-V2</td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-qty" onclick="toggleSection(&#39;sect-qty&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#E4DFEC"></span>
+    <span class="sh-title">Details of Quantity Changes (2)</span>
+    <span class="sh-right">2 parts</span>
+  </div>
+      <div id="sect-qty" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty (Old → New)</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="qtychange">
+        <td>2</td>
+        <td>Part</td>
+        <td>CAP-470</td>
+        <td>Capacitor 470uF</td>
+        <td>A</td>
+        <td>20</td>
+        <td>4 → 6</td>
+        <td>CapWorks</td>
+        <td>CW-470<br>Murata</td>
+      </tr>
+      <tr class="qtychange">
+        <td>2</td>
+        <td>Part</td>
+        <td>CAP-470</td>
+        <td>Capacitor 470uF (decoup)</td>
+        <td>A</td>
+        <td>10</td>
+        <td>2 → 3</td>
+        <td>CapWorks</td>
+        <td>CW-470</td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-mfg" onclick="toggleSection(&#39;sect-mfg&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#FCE4D6"></span>
+    <span class="sh-title">Details of Manufacturer Changes (1)</span>
+    <span class="sh-right">1 part</span>
+  </div>
+      <div id="sect-mfg" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="mfgchange">
+        <td>2</td>
+        <td>Part</td>
+        <td>XFMR-100</td>
+        <td>Transformer, isolation</td>
+        <td>A</td>
+        <td>10</td>
+        <td>1</td>
+        <td>PowerCorp → EagleMag</td>
+        <td>PC-XF-100 → EM-XF-100</td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-unchanged" onclick="toggleSection(&#39;sect-unchanged&#39;, this)">
+    <span class="sh-tri">▼</span>
+    <span class="swatch" style="background:#F2F2F2"></span>
+    <span class="sh-title">Details of Unchanged Items (9)</span>
+    <span class="sh-right">7 parts, 1 procedure, 1 other</span>
+  </div>
+      <div id="sect-unchanged" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th>
+      <th>Find</th>
+      <th>Qty</th>
+      <th>Mfg</th><th>Mfg Part No</th>
+    </tr>
+    
+      <tr class="">
+        <td>0</td>
+        <td></td>
+        <td>CHASSIS-200</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Part</td>
+        <td><a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+        <td>Power supply unit, 400W</td>
+        <td>B</td>
+        <td>20</td>
+        <td>1</td>
+        <td>PowerCorp</td>
+        <td>PC-PSU-400</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Part</td>
+        <td><a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+        <td>Main controller PCB</td>
+        <td>C</td>
+        <td>30</td>
+        <td>1</td>
+        <td>PCBCo</td>
+        <td>PCB-MAIN-V3</td>
+      </tr>
+      <tr class="">
+        <td>3</td>
+        <td>Part</td>
+        <td>CONN-RJ45</td>
+        <td>Ethernet jack</td>
+        <td>A</td>
+        <td>20</td>
+        <td>1</td>
+        <td>Bel Fuse</td>
+        <td>BF-RJ45-MAG</td>
+      </tr>
+      <tr class="">
+        <td>4</td>
+        <td>Part</td>
+        <td>PIN-CONTACT</td>
+        <td>Gold pin, signal</td>
+        <td>A</td>
+        <td>10</td>
+        <td>8</td>
+        <td>Amphenol</td>
+        <td>AM-PIN-G</td>
+      </tr>
+      <tr class="">
+        <td>2</td>
+        <td>Part</td>
+        <td>MCU-STM32</td>
+        <td>Microcontroller, ARM</td>
+        <td>A</td>
+        <td>20</td>
+        <td>1</td>
+        <td>ST Micro</td>
+        <td>STM32F407</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Part</td>
+        <td>PANEL-FRONT</td>
+        <td>Front panel</td>
+        <td>A</td>
+        <td>40</td>
+        <td>1</td>
+        <td>MetalWorks</td>
+        <td>MW-PNL-F</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Part</td>
+        <td>LBL-R&amp;D&lt;v2&gt;</td>
+        <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+        <td>A</td>
+        <td>50</td>
+        <td>1</td>
+        <td>LabelMakr</td>
+        <td>LM-RD</td>
+      </tr>
+      <tr class="">
+        <td>1</td>
+        <td>Procedure</td>
+        <td>PROC-QC</td>
+        <td>QC inspection procedure</td>
+        <td>B</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-aligned" onclick="toggleSection(&#39;sect-aligned&#39;, this)">
+    <span class="sh-tri">▼</span>
+    
+    <span class="sh-title">Path-Based Diff</span>
+    
+  </div>
+      <div id="sect-aligned" class="">
+  <table>
+  <tbody><tr>
+    <th>Path</th><th>Part</th><th>Description</th>
+    <th>Old Rev</th><th>New Rev</th>
+    <th>Old Find</th><th>New Find</th>
+    <th>Old Qty</th><th>New Qty</th>
+    <th>Change</th>
+  </tr>
+  <tr class="">
+        <td>CHASSIS-200</td>
+        <td>CHASSIS-200</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Unchanged</td>
+      </tr><tr class="revchange">
+        <td>CHASSIS-200 &gt; FRAME-200</td>
+        <td><a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+        <td>Welded steel frame</td>
+        <td>C</td>
+        <td>D</td>
+        <td>10</td>
+        <td>10</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Revision Changed</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PSU-400</td>
+        <td><a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+        <td>Power supply unit, 400W</td>
+        <td>B</td>
+        <td>B</td>
+        <td>20</td>
+        <td>20</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="mfgchange">
+        <td>CHASSIS-200 &gt; PSU-400 &gt; XFMR-100</td>
+        <td>XFMR-100</td>
+        <td>Transformer, isolation</td>
+        <td>A</td>
+        <td>A</td>
+        <td>10</td>
+        <td>10</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Manufacturer Changed</td>
+      </tr><tr class="revchange">
+        <td>CHASSIS-200 &gt; PSU-400 &gt; CAP-470</td>
+        <td>CAP-470</td>
+        <td>Capacitor 470uF</td>
+        <td>A</td>
+        <td>B</td>
+        <td>20</td>
+        <td>20</td>
+        <td>4</td>
+        <td>6</td>
+        <td>Revision Changed, Qty Changed</td>
+      </tr><tr class="removed">
+        <td>CHASSIS-200 &gt; PSU-400 &gt; DIODE-1N4007</td>
+        <td>DIODE-1N4007</td>
+        <td>Rectifier diode</td>
+        <td>A</td>
+        <td></td>
+        <td>30</td>
+        <td></td>
+        <td>4</td>
+        <td></td>
+        <td>Removed</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PCB-MAIN</td>
+        <td><a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+        <td>Main controller PCB</td>
+        <td>C</td>
+        <td>C</td>
+        <td>30</td>
+        <td>30</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="revchange">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; SUB-IO</td>
+        <td>SUB-IO</td>
+        <td>I/O daughterboard</td>
+        <td>B</td>
+        <td>C</td>
+        <td>10</td>
+        <td>5</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Revision Changed, Find Changed</td>
+      </tr><tr class="removed">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; SUB-IO &gt; CONN-DB9</td>
+        <td>CONN-DB9</td>
+        <td>DB-9 connector</td>
+        <td>A</td>
+        <td></td>
+        <td>10</td>
+        <td></td>
+        <td>2</td>
+        <td></td>
+        <td>Removed</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; SUB-IO &gt; CONN-RJ45</td>
+        <td>CONN-RJ45</td>
+        <td>Ethernet jack</td>
+        <td>A</td>
+        <td>A</td>
+        <td>20</td>
+        <td>20</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; SUB-IO &gt; CONN-RJ45 &gt; PIN-CONTACT</td>
+        <td>PIN-CONTACT</td>
+        <td>Gold pin, signal</td>
+        <td>A</td>
+        <td>A</td>
+        <td>10</td>
+        <td>10</td>
+        <td>8</td>
+        <td>8</td>
+        <td>Unchanged</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; MCU-STM32</td>
+        <td>MCU-STM32</td>
+        <td>Microcontroller, ARM</td>
+        <td>A</td>
+        <td>A</td>
+        <td>20</td>
+        <td>20</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PANEL-FRONT</td>
+        <td>PANEL-FRONT</td>
+        <td>Front panel</td>
+        <td>A</td>
+        <td>A</td>
+        <td>40</td>
+        <td>40</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="qtychange">
+        <td>CHASSIS-200 &gt; PANEL-FRONT &gt; CAP-470</td>
+        <td>CAP-470</td>
+        <td>Capacitor 470uF (decoup)</td>
+        <td>A</td>
+        <td>A</td>
+        <td>10</td>
+        <td>10</td>
+        <td>2</td>
+        <td>3</td>
+        <td>Qty Changed</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; LBL-R&amp;D&lt;v2&gt;</td>
+        <td>LBL-R&amp;D&lt;v2&gt;</td>
+        <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+        <td>A</td>
+        <td>A</td>
+        <td>50</td>
+        <td>50</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Unchanged</td>
+      </tr><tr class="revchange">
+        <td>CHASSIS-200 &gt; SPEC-EMC</td>
+        <td><a href="https://www.academyofemc.com/emc-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">SPEC-EMC</a></td>
+        <td>EMC compliance specification</td>
+        <td>B</td>
+        <td>C</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Revision Changed</td>
+      </tr><tr class="removed">
+        <td>CHASSIS-200 &gt; SPEC-ENV</td>
+        <td>SPEC-ENV</td>
+        <td>Environmental compliance</td>
+        <td>A</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Removed</td>
+      </tr><tr class="revchange">
+        <td>CHASSIS-200 &gt; DWG-ASM</td>
+        <td>DWG-ASM</td>
+        <td>Assembly drawing</td>
+        <td>D</td>
+        <td>E</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Revision Changed</td>
+      </tr><tr class="">
+        <td>CHASSIS-200 &gt; PROC-QC</td>
+        <td>PROC-QC</td>
+        <td>QC inspection procedure</td>
+        <td>B</td>
+        <td>B</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Unchanged</td>
+      </tr><tr class="added">
+        <td>CHASSIS-200 &gt; PSU-400 &gt; FUSE-2A</td>
+        <td>FUSE-2A</td>
+        <td>Slow-blow fuse, 2A</td>
+        <td></td>
+        <td>A</td>
+        <td></td>
+        <td>40</td>
+        <td></td>
+        <td>1</td>
+        <td>Added</td>
+      </tr><tr class="added">
+        <td>CHASSIS-200 &gt; PCB-MAIN &gt; SUB-IO &gt; CONN-USB-C</td>
+        <td>CONN-USB-C</td>
+        <td>USB-C connector</td>
+        <td></td>
+        <td>A</td>
+        <td></td>
+        <td>10</td>
+        <td></td>
+        <td>2</td>
+        <td>Added</td>
+      </tr><tr class="added">
+        <td>CHASSIS-200 &gt; BRACKET-EARTH</td>
+        <td>BRACKET-EARTH</td>
+        <td>Earth bonding bracket</td>
+        <td></td>
+        <td>A</td>
+        <td></td>
+        <td>55</td>
+        <td></td>
+        <td>2</td>
+        <td>Added</td>
+      </tr><tr class="added">
+        <td>CHASSIS-200 &gt; SPEC-SAFETY</td>
+        <td>SPEC-SAFETY</td>
+        <td>Safety standards (IEC 61010)</td>
+        <td></td>
+        <td>A</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Added</td>
+      </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-sbs" onclick="toggleSection(&#39;sect-sbs&#39;, this)">
+    <span class="sh-tri">▼</span>
+    
+    <span class="sh-title">Side-by-Side BOM (Old vs New)</span>
+    
+  </div>
+    <div id="sect-sbs" class="">
+      
+      <div id="sbsBody">
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">Find #</th>
+          <th colspan="6" style="background:#e8eef7">Old BOM</th>
+          <th colspan="6" style="background:#e8f4ec">New BOM</th>
+          <th rowspan="2">Change</th>
+        </tr>
+        <tr>
+          <th>Part</th><th>Description</th><th>Rev</th><th>Find</th><th>Qty</th><th>Mfg</th>
+          <th>Part</th><th>Description</th><th>Rev</th><th>Find</th><th>Qty</th><th>Mfg</th>
+        </tr>
+      </thead>
+      <tbody><tr class="added">
+        <td>5</td>
+        <td colspan="6" style="color:#999;font-style:italic">(no match)</td>
+        
+      <td>SUB-IO</td>
+      <td>I/O daughterboard</td>
+      <td>C</td>
+      <td>5</td>
+      <td>1</td>
+      <td>PCBCo</td>
+        <td>Added</td>
+      </tr><tr class="revchange">
+        <td>10</td>
+        
+      <td><a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+      <td>Welded steel frame</td>
+      <td>C</td>
+      <td>10</td>
+      <td>1</td>
+      <td>MetalWorks</td>
+        
+      <td><a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+      <td>Welded steel frame</td>
+      <td>D</td>
+      <td>10</td>
+      <td>1</td>
+      <td>MetalWorks</td>
+        <td>Revision Changed</td>
+      </tr><tr class="mfgchange">
+        <td>10</td>
+        
+      <td>XFMR-100</td>
+      <td>Transformer, isolation</td>
+      <td>A</td>
+      <td>10</td>
+      <td>1</td>
+      <td>PowerCorp</td>
+        
+      <td>XFMR-100</td>
+      <td>Transformer, isolation</td>
+      <td>A</td>
+      <td>10</td>
+      <td>1</td>
+      <td>EagleMag</td>
+        <td>Manufacturer Changed</td>
+      </tr><tr class="revchange">
+        <td>10</td>
+        
+      <td>SUB-IO</td>
+      <td>I/O daughterboard</td>
+      <td>B</td>
+      <td>10</td>
+      <td>1</td>
+      <td>PCBCo</td>
+        
+      <td>CONN-USB-C</td>
+      <td>USB-C connector</td>
+      <td>A</td>
+      <td>10</td>
+      <td>2</td>
+      <td>Amphenol</td>
+        <td>Revision Changed, Qty Changed, Manufacturer Changed</td>
+      </tr><tr class="qtychange">
+        <td>10</td>
+        
+      <td>CONN-DB9</td>
+      <td>DB-9 connector</td>
+      <td>A</td>
+      <td>10</td>
+      <td>2</td>
+      <td>Amphenol</td>
+        
+      <td>PIN-CONTACT</td>
+      <td>Gold pin, signal</td>
+      <td>A</td>
+      <td>10</td>
+      <td>8</td>
+      <td>Amphenol</td>
+        <td>Qty Changed, Manufacturer Changed</td>
+      </tr><tr class="qtychange">
+        <td>10</td>
+        
+      <td>PIN-CONTACT</td>
+      <td>Gold pin, signal</td>
+      <td>A</td>
+      <td>10</td>
+      <td>8</td>
+      <td>Amphenol</td>
+        
+      <td>CAP-470</td>
+      <td>Capacitor 470uF (decoup)</td>
+      <td>A</td>
+      <td>10</td>
+      <td>3</td>
+      <td>CapWorks</td>
+        <td>Qty Changed, Manufacturer Changed</td>
+      </tr><tr class="removed">
+        <td>10</td>
+        
+      <td>CAP-470</td>
+      <td>Capacitor 470uF (decoup)</td>
+      <td>A</td>
+      <td>10</td>
+      <td>2</td>
+      <td>CapWorks</td>
+        <td colspan="6" style="color:#999;font-style:italic">(no match)</td>
+        <td>Removed</td>
+      </tr><tr class="">
+        <td>20</td>
+        
+      <td><a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+      <td>Power supply unit, 400W</td>
+      <td>B</td>
+      <td>20</td>
+      <td>1</td>
+      <td>PowerCorp</td>
+        
+      <td><a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+      <td>Power supply unit, 400W</td>
+      <td>B</td>
+      <td>20</td>
+      <td>1</td>
+      <td>PowerCorp</td>
+        <td>Unchanged</td>
+      </tr><tr class="revchange">
+        <td>20</td>
+        
+      <td>CAP-470</td>
+      <td>Capacitor 470uF</td>
+      <td>A</td>
+      <td>20</td>
+      <td>4</td>
+      <td>CapWorks</td>
+        
+      <td>CAP-470</td>
+      <td>Capacitor 470uF</td>
+      <td>B</td>
+      <td>20</td>
+      <td>6</td>
+      <td>CapWorks</td>
+        <td>Revision Changed, Qty Changed</td>
+      </tr><tr class="">
+        <td>20</td>
+        
+      <td>CONN-RJ45</td>
+      <td>Ethernet jack</td>
+      <td>A</td>
+      <td>20</td>
+      <td>1</td>
+      <td>Bel Fuse</td>
+        
+      <td>CONN-RJ45</td>
+      <td>Ethernet jack</td>
+      <td>A</td>
+      <td>20</td>
+      <td>1</td>
+      <td>Bel Fuse</td>
+        <td>Unchanged</td>
+      </tr><tr class="">
+        <td>20</td>
+        
+      <td>MCU-STM32</td>
+      <td>Microcontroller, ARM</td>
+      <td>A</td>
+      <td>20</td>
+      <td>1</td>
+      <td>ST Micro</td>
+        
+      <td>MCU-STM32</td>
+      <td>Microcontroller, ARM</td>
+      <td>A</td>
+      <td>20</td>
+      <td>1</td>
+      <td>ST Micro</td>
+        <td>Unchanged</td>
+      </tr><tr class="revchange">
+        <td>30</td>
+        
+      <td>DIODE-1N4007</td>
+      <td>Rectifier diode</td>
+      <td>A</td>
+      <td>30</td>
+      <td>4</td>
+      <td>DiodesInc</td>
+        
+      <td><a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+      <td>Main controller PCB</td>
+      <td>C</td>
+      <td>30</td>
+      <td>1</td>
+      <td>PCBCo</td>
+        <td>Revision Changed, Qty Changed, Manufacturer Changed</td>
+      </tr><tr class="removed">
+        <td>30</td>
+        
+      <td><a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+      <td>Main controller PCB</td>
+      <td>C</td>
+      <td>30</td>
+      <td>1</td>
+      <td>PCBCo</td>
+        <td colspan="6" style="color:#999;font-style:italic">(no match)</td>
+        <td>Removed</td>
+      </tr><tr class="mfgchange">
+        <td>40</td>
+        
+      <td>PANEL-FRONT</td>
+      <td>Front panel</td>
+      <td>A</td>
+      <td>40</td>
+      <td>1</td>
+      <td>MetalWorks</td>
+        
+      <td>FUSE-2A</td>
+      <td>Slow-blow fuse, 2A</td>
+      <td>A</td>
+      <td>40</td>
+      <td>1</td>
+      <td>Littelfuse</td>
+        <td>Manufacturer Changed</td>
+      </tr><tr class="added">
+        <td>40</td>
+        <td colspan="6" style="color:#999;font-style:italic">(no match)</td>
+        
+      <td>PANEL-FRONT</td>
+      <td>Front panel</td>
+      <td>A</td>
+      <td>40</td>
+      <td>1</td>
+      <td>MetalWorks</td>
+        <td>Added</td>
+      </tr><tr class="">
+        <td>50</td>
+        
+      <td>LBL-R&amp;D&lt;v2&gt;</td>
+      <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+      <td>A</td>
+      <td>50</td>
+      <td>1</td>
+      <td>LabelMakr</td>
+        
+      <td>LBL-R&amp;D&lt;v2&gt;</td>
+      <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+      <td>A</td>
+      <td>50</td>
+      <td>1</td>
+      <td>LabelMakr</td>
+        <td>Unchanged</td>
+      </tr><tr class="added">
+        <td>55</td>
+        <td colspan="6" style="color:#999;font-style:italic">(no match)</td>
+        
+      <td>BRACKET-EARTH</td>
+      <td>Earth bonding bracket</td>
+      <td>A</td>
+      <td>55</td>
+      <td>2</td>
+      <td>MetalWorks</td>
+        <td>Added</td>
+      </tr></tbody>
+    </table></div>
+    </div>
+
+    <div class="sect-head" id="head-sect-bom-old" onclick="toggleSection(&#39;sect-bom-old&#39;, this)">
+    <span class="sh-tri">▼</span>
+    
+    <span class="sh-title">Old BOM: CHASSIS-200 (Rev D) — 19 items</span>
+    <span class="sh-right">14 parts, 2 specifications, 1 procedure, 1 drawing, 1 other</span>
+  </div>
+      <div id="sect-bom-old" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th><th>Find</th><th>Qty</th><th>Mfg</th><th>Mfg Part No</th><th>Comment</th>
+    </tr>
+    
+        <tr class=" " data-level="0" onclick="toggleRow(this)">
+          <td>0</td>
+          <td></td>
+          <td style="padding-left:0px"><span class="indicator">▶</span> CHASSIS-200</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+          <td>Welded steel frame</td>
+          <td>C</td>
+          <td>10</td>
+          <td>1</td>
+          <td>MetalWorks</td>
+          <td>MW-FR-200</td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+          <td>Power supply unit, 400W</td>
+          <td>B</td>
+          <td>20</td>
+          <td>1</td>
+          <td>PowerCorp</td>
+          <td>PC-PSU-400</td>
+          <td></td>
+        </tr>
+        <tr class="mfgchange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> XFMR-100</td>
+          <td>Transformer, isolation</td>
+          <td>A</td>
+          <td>10</td>
+          <td>1</td>
+          <td>PowerCorp</td>
+          <td>PC-XF-100</td>
+          <td>Manufacturer Changed</td>
+        </tr>
+        <tr class="revchange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> CAP-470</td>
+          <td>Capacitor 470uF</td>
+          <td>A</td>
+          <td>20</td>
+          <td>4</td>
+          <td>CapWorks</td>
+          <td>CW-470<br>Murata</td>
+          <td>Revision Changed, Qty Changed</td>
+        </tr>
+        <tr class="removed hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> DIODE-1N4007</td>
+          <td>Rectifier diode</td>
+          <td>A</td>
+          <td>30</td>
+          <td>4</td>
+          <td>DiodesInc</td>
+          <td>DI-1N4007</td>
+          <td>Removed</td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+          <td>Main controller PCB</td>
+          <td>C</td>
+          <td>30</td>
+          <td>1</td>
+          <td>PCBCo</td>
+          <td>PCB-MAIN-V3</td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="2" onclick="toggleRow(this)">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> SUB-IO</td>
+          <td>I/O daughterboard</td>
+          <td>B</td>
+          <td>10</td>
+          <td>1</td>
+          <td>PCBCo</td>
+          <td>PCB-IO-V2</td>
+          <td>Revision Changed, Find Changed</td>
+        </tr>
+        <tr class="removed hidden" data-level="3">
+          <td>3</td>
+          <td>Part</td>
+          <td style="padding-left:45px"><span class="indicator">▶</span> CONN-DB9</td>
+          <td>DB-9 connector</td>
+          <td>A</td>
+          <td>10</td>
+          <td>2</td>
+          <td>Amphenol</td>
+          <td>AM-DB9-M</td>
+          <td>Removed</td>
+        </tr>
+        <tr class="hidden" data-level="3" onclick="toggleRow(this)">
+          <td>3</td>
+          <td>Part</td>
+          <td style="padding-left:45px"><span class="indicator">▶</span> CONN-RJ45</td>
+          <td>Ethernet jack</td>
+          <td>A</td>
+          <td>20</td>
+          <td>1</td>
+          <td>Bel Fuse</td>
+          <td>BF-RJ45-MAG</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="4">
+          <td>4</td>
+          <td>Part</td>
+          <td style="padding-left:60px"><span class="indicator">▶</span> PIN-CONTACT</td>
+          <td>Gold pin, signal</td>
+          <td>A</td>
+          <td>10</td>
+          <td>8</td>
+          <td>Amphenol</td>
+          <td>AM-PIN-G</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> MCU-STM32</td>
+          <td>Microcontroller, ARM</td>
+          <td>A</td>
+          <td>20</td>
+          <td>1</td>
+          <td>ST Micro</td>
+          <td>STM32F407</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> PANEL-FRONT</td>
+          <td>Front panel</td>
+          <td>A</td>
+          <td>40</td>
+          <td>1</td>
+          <td>MetalWorks</td>
+          <td>MW-PNL-F</td>
+          <td></td>
+        </tr>
+        <tr class="qtychange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> CAP-470</td>
+          <td>Capacitor 470uF (decoup)</td>
+          <td>A</td>
+          <td>10</td>
+          <td>2</td>
+          <td>CapWorks</td>
+          <td>CW-470</td>
+          <td>Qty Changed</td>
+        </tr>
+        <tr class="hidden" data-level="1">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> LBL-R&amp;D&lt;v2&gt;</td>
+          <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+          <td>A</td>
+          <td>50</td>
+          <td>1</td>
+          <td>LabelMakr</td>
+          <td>LM-RD</td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Specification</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.academyofemc.com/emc-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">SPEC-EMC</a></td>
+          <td>EMC compliance specification</td>
+          <td>B</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="removed hidden" data-level="1">
+          <td>1</td>
+          <td>Specification</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> SPEC-ENV</td>
+          <td>Environmental compliance</td>
+          <td>A</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Removed</td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Drawing</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> DWG-ASM</td>
+          <td>Assembly drawing</td>
+          <td>D</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="hidden" data-level="1">
+          <td>1</td>
+          <td>Procedure</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> PROC-QC</td>
+          <td>QC inspection procedure</td>
+          <td>B</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+  </tbody></table></div>
+
+    <div class="sect-head" id="head-sect-bom-new" onclick="toggleSection(&#39;sect-bom-new&#39;, this)">
+    <span class="sh-tri">▼</span>
+    
+    <span class="sh-title">New BOM: CHASSIS-200 (Rev E) — 20 items</span>
+    <span class="sh-right">15 parts, 2 specifications, 1 procedure, 1 drawing, 1 other</span>
+  </div>
+      <div id="sect-bom-new" class="">
+  <table>
+    <tbody><tr>
+      <th>Level</th><th>Type</th><th>Part</th><th>Description</th>
+      <th>Rev</th><th>Find</th><th>Qty</th><th>Mfg</th><th>Mfg Part No</th><th>Comment</th>
+    </tr>
+    
+        <tr class=" " data-level="0" onclick="toggleRow(this)">
+          <td>0</td>
+          <td></td>
+          <td style="padding-left:0px"><span class="indicator">▶</span> CHASSIS-200</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://viewer.pdfguru.com/?file=https://www.wylerag.com/fileadmin/pdf/datasheets/wylerCLINO_wylerLEVEL%20Frames/Datasheet%20wylerLEVEL%20Frame%20200mm.pdf&amp;amp;pg_src=ce" target="_blank" rel="noopener" onclick="event.stopPropagation()">FRAME-200</a></td>
+          <td>Welded steel frame</td>
+          <td>D</td>
+          <td>10</td>
+          <td>1</td>
+          <td>MetalWorks</td>
+          <td>MW-FR-200</td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.coolermaster.com/en-global/products/elite-v3-400w.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PSU-400</a></td>
+          <td>Power supply unit, 400W</td>
+          <td>B</td>
+          <td>20</td>
+          <td>1</td>
+          <td>PowerCorp</td>
+          <td>PC-PSU-400</td>
+          <td></td>
+        </tr>
+        <tr class="mfgchange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> XFMR-100</td>
+          <td>Transformer, isolation</td>
+          <td>A</td>
+          <td>10</td>
+          <td>1</td>
+          <td>EagleMag</td>
+          <td>EM-XF-100</td>
+          <td>Manufacturer Changed</td>
+        </tr>
+        <tr class="revchange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> CAP-470</td>
+          <td>Capacitor 470uF</td>
+          <td>B</td>
+          <td>20</td>
+          <td>6</td>
+          <td>CapWorks</td>
+          <td>CW-470<br>Murata</td>
+          <td>Revision Changed, Qty Changed</td>
+        </tr>
+        <tr class="added hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> FUSE-2A</td>
+          <td>Slow-blow fuse, 2A</td>
+          <td>A</td>
+          <td>40</td>
+          <td>1</td>
+          <td>Littelfuse</td>
+          <td>LF-2A-SB</td>
+          <td>Added</td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.sparkfun.com/nvidia-jetson-orin-nano-developer-kit.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">PCB-MAIN</a></td>
+          <td>Main controller PCB</td>
+          <td>C</td>
+          <td>30</td>
+          <td>1</td>
+          <td>PCBCo</td>
+          <td>PCB-MAIN-V3</td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="2" onclick="toggleRow(this)">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> SUB-IO</td>
+          <td>I/O daughterboard</td>
+          <td>C</td>
+          <td>5</td>
+          <td>1</td>
+          <td>PCBCo</td>
+          <td>PCB-IO-V2</td>
+          <td>Revision Changed, Find Changed</td>
+        </tr>
+        <tr class="added hidden" data-level="3">
+          <td>3</td>
+          <td>Part</td>
+          <td style="padding-left:45px"><span class="indicator">▶</span> CONN-USB-C</td>
+          <td>USB-C connector</td>
+          <td>A</td>
+          <td>10</td>
+          <td>2</td>
+          <td>Amphenol</td>
+          <td>AM-USBC-R</td>
+          <td>Added</td>
+        </tr>
+        <tr class="hidden" data-level="3" onclick="toggleRow(this)">
+          <td>3</td>
+          <td>Part</td>
+          <td style="padding-left:45px"><span class="indicator">▶</span> CONN-RJ45</td>
+          <td>Ethernet jack</td>
+          <td>A</td>
+          <td>20</td>
+          <td>1</td>
+          <td>Bel Fuse</td>
+          <td>BF-RJ45-MAG</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="4">
+          <td>4</td>
+          <td>Part</td>
+          <td style="padding-left:60px"><span class="indicator">▶</span> PIN-CONTACT</td>
+          <td>Gold pin, signal</td>
+          <td>A</td>
+          <td>10</td>
+          <td>8</td>
+          <td>Amphenol</td>
+          <td>AM-PIN-G</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> MCU-STM32</td>
+          <td>Microcontroller, ARM</td>
+          <td>A</td>
+          <td>20</td>
+          <td>1</td>
+          <td>ST Micro</td>
+          <td>STM32F407</td>
+          <td></td>
+        </tr>
+        <tr class="hidden" data-level="1" onclick="toggleRow(this)">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> PANEL-FRONT</td>
+          <td>Front panel</td>
+          <td>A</td>
+          <td>40</td>
+          <td>1</td>
+          <td>MetalWorks</td>
+          <td>MW-PNL-F</td>
+          <td></td>
+        </tr>
+        <tr class="qtychange hidden" data-level="2">
+          <td>2</td>
+          <td>Part</td>
+          <td style="padding-left:30px"><span class="indicator">▶</span> CAP-470</td>
+          <td>Capacitor 470uF (decoup)</td>
+          <td>A</td>
+          <td>10</td>
+          <td>3</td>
+          <td>CapWorks</td>
+          <td>CW-470</td>
+          <td>Qty Changed</td>
+        </tr>
+        <tr class="added hidden" data-level="1">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> BRACKET-EARTH</td>
+          <td>Earth bonding bracket</td>
+          <td>A</td>
+          <td>55</td>
+          <td>2</td>
+          <td>MetalWorks</td>
+          <td>MW-BR-EARTH</td>
+          <td>Added</td>
+        </tr>
+        <tr class="hidden" data-level="1">
+          <td>1</td>
+          <td>Part</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> LBL-R&amp;D&lt;v2&gt;</td>
+          <td>Label: 'R&amp;D &lt;internal use&gt;'</td>
+          <td>A</td>
+          <td>50</td>
+          <td>1</td>
+          <td>LabelMakr</td>
+          <td>LM-RD</td>
+          <td></td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Specification</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> <a href="https://www.academyofemc.com/emc-standards" target="_blank" rel="noopener" onclick="event.stopPropagation()">SPEC-EMC</a></td>
+          <td>EMC compliance specification</td>
+          <td>C</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="added hidden" data-level="1">
+          <td>1</td>
+          <td>Specification</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> SPEC-SAFETY</td>
+          <td>Safety standards (IEC 61010)</td>
+          <td>A</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Added</td>
+        </tr>
+        <tr class="revchange hidden" data-level="1">
+          <td>1</td>
+          <td>Drawing</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> DWG-ASM</td>
+          <td>Assembly drawing</td>
+          <td>E</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Revision Changed</td>
+        </tr>
+        <tr class="hidden" data-level="1">
+          <td>1</td>
+          <td>Procedure</td>
+          <td style="padding-left:15px"><span class="indicator">▶</span> PROC-QC</td>
+          <td>QC inspection procedure</td>
+          <td>B</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+  </tbody></table></div>
+    
+<script>
+function toggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle("hidden"); }
+function toggleSection(divId, headEl){
+  var body=document.getElementById(divId); if(!body) return;
+  var nowHidden=body.classList.toggle("hidden");
+  var tri=headEl.querySelector(".sh-tri"); if(tri) tri.innerHTML=nowHidden?"▶":"▼";
+}
+function openSection(divId){
+  var body=document.getElementById(divId); var head=document.getElementById("head-"+divId);
+  if(!body||!head) return;
+  body.classList.remove("hidden");
+  var tri=head.querySelector(".sh-tri"); if(tri) tri.innerHTML="▼";
+  head.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function toggleRow(row){
+  var currentLevel=Number(row.dataset.level), next=row.nextElementSibling;
+  var indicator=row.querySelector(".indicator");
+  var isCollapsed=indicator && indicator.textContent==="▶";
+  if(indicator) indicator.textContent=isCollapsed?"▼":"▶";
+  while(next){
+    var nextLevel=Number(next.dataset.level);
+    if(nextLevel<=currentLevel) break;
+    if(!isCollapsed){ next.classList.add("hidden");
+      var ci=next.querySelector(".indicator"); if(ci) ci.textContent="▶";
+    } else if(nextLevel===currentLevel+1){ next.classList.remove("hidden"); }
+    next=next.nextElementSibling;
+  }
+}
+window.onload=function(){
+  document.querySelectorAll("tr[data-level]").forEach(function(r){
+    var level=Number(r.dataset.level);
+    var indicator=r.querySelector(".indicator");
+    if(level>0) r.classList.add("hidden");
+    if(indicator) indicator.textContent="▶";
+  });
+};
+</script></body></html>
