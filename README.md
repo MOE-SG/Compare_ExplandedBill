@@ -4,5 +4,5 @@
 </br>
 👉 [Download Sample Test Bill 2](https://moe-sg.github.io/Compare_ExplandedBill/test_expanded_bill_Rev2.xlsx)
 </br>
-👉 [!View the Interactive Sample Report Output (https://moe-sg.github.io/Compare_ExplandedBill/https://moe-sg.github.io/Compare_ExplandedBill/SampleReportScreenshot.png)](https://moe-sg.github.io/Compare_ExplandedBill/Sample-Report-Output.html)
+[![View Sample Report](https://moe-sg.github.io/Compare_ExplandedBill/SampleReportScreenshot.png)](https://moe-sg.github.io/Compare_ExplandedBill/Sample-Report-Output.html)</br>
 _Click the image above to view the interactive sample report._
