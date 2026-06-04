@@ -2,16 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Expanded Bills Comparison - rev 0.4</title>
-<!--
-  1) SheetJS (xlsx)
-     URL: https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
-     Save as: xlsx.full.min.js
-
-  2) ExcelJS
-     URL: https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js
-     Save as: exceljs.min.js
--->
+<title>BOM Compare Tool</title>
 
 <!-- INLINE SHEETJS HERE -->
 <script>/*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
@@ -164,7 +155,7 @@ button:disabled { opacity:.5; cursor:not-allowed; }
 
 <body>
 
-<h2>Expanded Bill Comparison - v0.4</h2>
+<h2>Expanded Bill Comparison - v0.7</h2>
 
 <div id="dz1" class="dropzone" onclick="bom1.click()">
   <div>
@@ -191,7 +182,7 @@ button:disabled { opacity:.5; cursor:not-allowed; }
   <button id="btnHtml" onclick="saveReport()" disabled>Save Html Report</button>
   <button id="btnExcel" onclick="saveExcel()" disabled>Save Excel Report</button>
   <label style="margin-left:14px; font-size:13px;">
-    <input type="checkbox" id="optKeepLinks">
+    <input type="checkbox" id="optKeepLinks" checked>
     Include hyperlinks in saved reports
   </label>
 </div>
@@ -205,6 +196,27 @@ let d1_global = null, d2_global = null;
 let sum_global = null, aligned_global = null;
 let m1_global = null, m2_global = null;
 let preview1 = null, preview2 = null;
+
+// ===================== VENDOR LIBRARY CHECK =====================
+// Surface a clear message if the inline SheetJS / ExcelJS scripts are missing.
+(function checkVendors(){
+  let missing = [];
+  if(typeof XLSX === "undefined")    missing.push("SheetJS (xlsx.full.min.js)");
+  if(typeof ExcelJS === "undefined") missing.push("ExcelJS (exceljs.min.js)");
+  if(missing.length){
+    document.addEventListener("DOMContentLoaded", function(){
+      let el = document.getElementById("msg");
+      if(el){
+        el.className = "err";
+        el.textContent = "Missing vendor libraries: " + missing.join(", ") +
+          ". Paste them into the two <script> blocks at the top of this file (see the comment block in the source).";
+      }
+      ["btnCompare","btnHtml","btnExcel"].forEach(id => {
+        let b = document.getElementById(id); if(b) b.disabled = true;
+      });
+    });
+  }
+})();
 
 // ===================== CATEGORY MODEL (single source of truth) =====================
 const CATEGORY = {
@@ -230,13 +242,25 @@ function escapeMfg(val){
 }
 
 // Renders a part id as a hyperlink if a link is present; plain text otherwise.
-// `forExport` is honored only when the "include links in saved reports" toggle
-// is off — that path strips the anchor.
+// `opts.stripLinks` returns plain text even when a link is present (used by
+// the saved-report path when the user opts out).
 function renderPartName(id, link, opts){
   let plain = escapeHtml(id || "");
-  if(!link) return plain;
+  if(!isUsableLink(link)) return plain;
   if(opts && opts.stripLinks) return plain;
-  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${plain}</a>`;
+  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener" title="${escapeHtml(link)}" onclick="event.stopPropagation()">${plain}</a>`;
+}
+
+// A link is "usable" only if it's a non-empty string AND looks like a real URL
+// (has a scheme like http:, https:, file:, mailto:, ftp:, or a UNC path \\...).
+function isUsableLink(link){
+  if(typeof link !== "string") return false;
+  let s = link.trim();
+  if(s === "" || s === "undefined" || s === "null") return false;
+  // Reject fragment-only "URLs" — these resolve against the current page and
+  // produce broken links like "file:///.../report.html#undefined".
+  if(s.startsWith("#")) return false;
+  return /^(https?:|file:|mailto:|ftp:|\\\\)/i.test(s);
 }
 
 function includeLinksInExport(){
@@ -313,13 +337,41 @@ function readExcel(file){
         let ws  = wb.Sheets[sheetName];
         let raw = XLSX.utils.sheet_to_json(ws, { header:1 });
 
-        // Hyperlink lookup: SheetJS stores them on each cell object as .l.Target.
-        // sheet_to_json drops that, so we walk the cells directly.
+        // Hyperlink lookup. Sources, in order of preference:
+        //   (1) Native cell.l.Target — the standard Excel hyperlink relationship.
+        //   (2) cell.l.Tooltip / cell.l.display — some PLM exports (HAL CAPE CWI,
+        //       ) put the actual URL in the <hyperlink display="..."> attribute
+        //       and leave the relationship Target as a placeholder like "#undefined".
+        //       SheetJS exposes it as Tooltip or display depending on version.
+        //   (3) =HYPERLINK("url","text") formula — another PLM export style.
         function getLink(rowIdx, colIdx){
           if(colIdx < 0) return "";
           let addr = XLSX.utils.encode_cell({ r:rowIdx, c:colIdx });
           let cell = ws[addr];
-          if(cell && cell.l && cell.l.Target) return String(cell.l.Target);
+          if(!cell) return "";
+
+          // Gather every candidate URL attached to this cell.
+          let candidates = [];
+          if(cell.l){
+            if(typeof cell.l.Target  === "string") candidates.push(cell.l.Target);
+            if(typeof cell.l.Tooltip === "string") candidates.push(cell.l.Tooltip);
+            if(typeof cell.l.display === "string") candidates.push(cell.l.display);
+            if(typeof cell.l.Display === "string") candidates.push(cell.l.Display);
+          }
+          if(typeof cell.f === "string" && /HYPERLINK/i.test(cell.f)){
+            let m = cell.f.match(/HYPERLINK\s*\(\s*"([^"]*)"/i) ||
+                    cell.f.match(/HYPERLINK\s*\(\s*'([^']*)'/i);
+            if(m && m[1]) candidates.push(m[1]);
+          }
+
+          // Pick the first candidate that looks like a real URL, skipping placeholders.
+          for(let c of candidates){
+            if(typeof c !== "string") continue;
+            let t = c.trim();
+            if(!t || t === "#undefined" || t === "undefined" || t === "null") continue;
+            if(t.startsWith("#")) continue; // fragment-only placeholders
+            return t;
+          }
           return "";
         }
 
@@ -538,7 +590,7 @@ function renderHeader(d1, d2, sum){
   let generated = new Date().toLocaleString();
   return `
   <div class="report-header">
-    <h2 class="rh-title">Expanded Bills Comparison Report</h2>
+    <h2 class="rh-title">BOM Comparison Report</h2>
     <table class="rh-meta">
       <tr><td class="rh-k">Old BOM</td><td class="rh-v">${escapeHtml(d1.rootId)} &nbsp;(Rev ${escapeHtml(d1.rootRev)})</td></tr>
       <tr><td class="rh-k">New BOM</td><td class="rh-v">${escapeHtml(d2.rootId)} &nbsp;(Rev ${escapeHtml(d2.rootRev)})</td></tr>
@@ -855,11 +907,13 @@ async function onFilePicked(which, file){
     if(which === 1) preview1 = data; else preview2 = data;
     dz.classList.add("loaded");
     icon.innerHTML = "&#9989;";
+    let linkCount = data.rows.filter(r => r.NameLink).length;
     state.innerHTML =
       escapeHtml(file.name) +
       " &mdash; root <span class='root'>" + escapeHtml(data.rootId || "?") +
       "</span> (Rev " + escapeHtml(data.rootRev || "?") + "), " +
       data.rows.length + " line(s)" +
+      (linkCount > 0 ? ", " + linkCount + " hyperlink(s)" : "") +
       (data.rows.length === 0 ? " &mdash; <span style='color:#b00'>no BOM rows found</span>" : "");
     clearMsg();
   } catch(err){
@@ -1192,7 +1246,7 @@ async function saveExcel(){
         // Apply hyperlink to the Part cell when enabled.
         if(withLinks && partColIdx > 0){
           let link = records[i].link;
-          if(link){
+          if(isUsableLink(link)){
             let cell = r.getCell(partColIdx);
             cell.value = { text:String(records[i].id || ""), hyperlink:link };
             cell.font = { color:{ argb:"FF0563C1" }, underline:true };
@@ -1288,12 +1342,12 @@ async function saveExcel(){
         });
         if(withLinks){
           // Old Part is column "ap" (2nd col); New Part is "bp" (8th col).
-          if(p.a && p.a.link){
+          if(p.a && isUsableLink(p.a.link)){
             let c = r.getCell("ap");
             c.value = { text:String(p.a.id || ""), hyperlink:p.a.link };
             c.font = { color:{ argb:"FF0563C1" }, underline:true };
           }
-          if(p.b && p.b.link){
+          if(p.b && isUsableLink(p.b.link)){
             let c = r.getCell("bp");
             c.value = { text:String(p.b.id || ""), hyperlink:p.b.link };
             c.font = { color:{ argb:"FF0563C1" }, underline:true };
