@@ -590,10 +590,10 @@ function renderHeader(d1, d2, sum){
   let generated = new Date().toLocaleString();
   return `
   <div class="report-header">
-    <h2 class="rh-title">BOM Comparison Report</h2>
+    <h2 class="rh-title">Expanded Bill Comparison Report</h2>
     <table class="rh-meta">
-      <tr><td class="rh-k">Old BOM</td><td class="rh-v">${escapeHtml(d1.rootId)} &nbsp;(Rev ${escapeHtml(d1.rootRev)})</td></tr>
-      <tr><td class="rh-k">New BOM</td><td class="rh-v">${escapeHtml(d2.rootId)} &nbsp;(Rev ${escapeHtml(d2.rootRev)})</td></tr>
+      <tr><td class="rh-k">Old Bill</td><td class="rh-v">${escapeHtml(d1.rootId)} &nbsp;(Rev ${escapeHtml(d1.rootRev)})</td></tr>
+      <tr><td class="rh-k">New Bill</td><td class="rh-v">${escapeHtml(d2.rootId)} &nbsp;(Rev ${escapeHtml(d2.rootRev)})</td></tr>
       <tr><td class="rh-k">Generated</td><td class="rh-v">${escapeHtml(generated)}</td></tr>
     </table>
     <div class="scorecard">
