@@ -1,5 +1,8 @@
-👉 [Run the script](https://moe-sg.github.io/Compare_ExplandedBill/index.html)
+Other Tools: 👉 [Draw Schematics](https://moe-sg.github.io/Schematic/index.html)</br>
+Other Tools: 👉 [Design Test Box Face Plate](https://moe-sg.github.io/TestBox/index.html)</br>
 </br>
+<h>Expanded Bill Comparison<h></br>
+👉 [Run the script](https://moe-sg.github.io/Compare_ExplandedBill/index.html)</br>
 👉 [Download Sample Test Bill 1](https://moe-sg.github.io/Compare_ExplandedBill/test_expanded_bill_Rev1.xlsx)
 </br>
 👉 [Download Sample Test Bill 2](https://moe-sg.github.io/Compare_ExplandedBill/test_expanded_bill_Rev2.xlsx)
